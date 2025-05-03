@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup & Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { padding: 8px; margin: 10px 0; width: 100%; }
+    button { background-color: #4CAF50; color: white; border: none; }
+    button:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+
+  <h1>Signup</h1>
+  <form id="signup-form">
+    <label for="signup-username">Username</label>
+    <input type="text" id="signup-username" required>
+
+    <label for="signup-password">Password</label>
+    <input type="password" id="signup-password" required>
+
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <h1>Login</h1>
+  <form id="login-form">
+    <label for="login-username">Username</label>
+    <input type="text" id="login-username" required>
+
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" required>
+
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+    const API_URL = 'http://localhost:5501'; // Backend URL
+
+    // Signup
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('signup-username').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const response = await fetch(`${API_URL}/api/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        alert(data.message);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Signup failed');
+      }
+    });
+
+    // Login
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const response = await fetch(`${API_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+          window.location.href = 'transaction.html';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Login failed');
+      }
+    });
+  </script>
+
+</body>
+</html>
