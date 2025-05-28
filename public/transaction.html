@@ -3,88 +3,631 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Transaction Dashboard</title>
+  <title>FinTrackr | Transaction Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    label { display: block; margin-top: 10px; }
-    input, select, textarea { width: 100%; padding: 8px; margin: 10px 0; }
-    button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; }
-    button:hover { background-color: #45a049; cursor: pointer; }
-    .message { margin-top: 10px; color: red; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    #total-balance { font-weight: bold; margin-top: 20px; }
-    #chart-container { width: 400px; margin-top: 40px; }
-    .delete-btn {
-      background-color: #f44336;
-      color: white;
-      border: none;
-      padding: 5px 10px;
+    /* =========== BASE STYLES =========== */
+    :root {
+      /* Primary Colors */
+      --primary-color: #5c6ac4;
+      --primary-dark: #4a5ab9;
+      --primary-light: #7b86d6;
+
+      /* Secondary Colors */
+      --secondary-color: #6dd5ed;
+      --secondary-dark: #2193b0;
+
+      /* Neutral Colors */
+      --white: #ffffff;
+      --off-white: #f8f9fc;
+      --light-gray: #e6e9f0;
+      --medium-gray: #8c91a1;
+      --dark-gray: #424957;
+      --black: #1f2532;
+
+      /* Feedback Colors */
+      --success: #1ecd97;
+      --warning: #ffbe0b;
+      --error: #f55252;
+
+      /* Income/Expense Colors */
+      --income: #1ecd97;
+      --expense: #f55252;
+
+      /* Typography */
+      --font-family: 'Poppins', sans-serif;
+
+      /* Shadows */
+      --shadow-sm: 0 2px 8px rgba(31, 37, 50, 0.07);
+      --shadow-md: 0 4px 16px rgba(31, 37, 50, 0.1);
+      --shadow-lg: 0 8px 24px rgba(31, 37, 50, 0.15);
+
+      /* Border Radius */
+      --border-radius-sm: 6px;
+      --border-radius-md: 12px;
+      --border-radius-lg: 20px;
+
+      /* Transitions */
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.3s ease;
     }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-family);
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--dark-gray);
+      background-color: var(--off-white);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* =========== LAYOUT =========== */
+    .dashboard-container {
+      display: flex;
+      flex-direction: column;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .logo i {
+      margin-right: 0.75rem;
+      font-size: 2rem;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--white);
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .user-menu i {
+      color: var(--primary-color);
+      font-size: 1.25rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.5rem;
+    }
+
+    /* =========== CARDS =========== */
+    .card {
+      background-color: var(--white);
+      border-radius: var(--border-radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: box-shadow var(--transition-fast);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--black);
+      margin: 0;
+    }
+
+    .card-icon {
+      width: 2rem;
+      height: 2rem;
+      background-color: var(--primary-light);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    .balance-card {
+      grid-column: span 4;
+    }
+
+    .balance-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 0.75rem;
+    }
+
+    .balance-change {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--medium-gray);
+    }
+
+    .transaction-card {
+      grid-column: span 8;
+    }
+
+    .chart-card {
+      grid-column: span 4;
+    }
+
+    .history-card {
+      grid-column: span 12;
+      margin-top: 1.5rem;
+    }
+
+    /* =========== FORM ELEMENTS =========== */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .form-group.half {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--dark-gray);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--medium-gray);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      padding-left: 2.25rem;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius-md);
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      color: var(--dark-gray);
+      background-color: var(--white);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    textarea {
+      padding-left: 1rem;
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(92, 106, 196, 0.15);
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper i {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--medium-gray);
+      pointer-events: none;
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+      padding-right: 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--border-radius-md);
+      font-family: var(--font-family);
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: var(--white);
+    }
+
+    .btn-secondary {
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+    }
+
+    .btn-danger {
+      background-color: var(--error);
+      color: var(--white);
+    }
+
+    .message {
+      margin-top: 1rem;
+      color: var(--error);
+      font-size: 0.875rem;
+    }
+
+    /* =========== TABLE =========== */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--light-gray);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--black);
+      background-color: var(--off-white);
+    }
+
+    tbody tr:hover {
+      background-color: var(--off-white);
+    }
+
+    .delete-btn {
+      background-color: var(--error);
+      color: var(--white);
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--border-radius-sm);
+      border: none;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background-color var(--transition-fast);
+    }
+
     .delete-btn:hover {
       background-color: #d32f2f;
-      cursor: pointer;
     }
-    .income { color: #388E3C; }
-    .spending { color: #d32f2f; }
+
+    .income {
+      color: var(--income);
+      font-weight: 600;
+    }
+
+    .spending {
+      color: var(--expense);
+      font-weight: 600;
+    }
+
+    /* =========== CHART =========== */
+    #chart-container {
+      width: 100%;
+      height: 250px;
+    }
+
+    /* =========== NOTIFICATION =========== */
+    .notification {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius-md);
+      background-color: var(--white);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      max-width: 350px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity var(--transition-normal), transform var(--transition-normal);
+      z-index: 1000;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .notification-success {
+      border-left: 4px solid var(--success);
+    }
+
+    .notification-error {
+      border-left: 4px solid var(--error);
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .notification-icon {
+      margin-right: 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    .notification-success .notification-icon {
+      color: var(--success);
+    }
+
+    .notification-error .notification-icon {
+      color: var(--error);
+    }
+
+    .notification-message {
+      font-size: 0.95rem;
+      color: var(--dark-gray);
+    }
+
+    /* =========== RESPONSIVE =========== */
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(12, 1fr);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(12, 1fr);
+      }
+
+      .balance-card, .chart-card {
+        grid-column: span 6;
+      }
+
+      .transaction-card {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 1rem;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .balance-card, .chart-card, .transaction-card, .history-card {
+        grid-column: span 1;
+      }
+
+      .form-row {
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+      <div class="logo">
+        <i class="fas fa-wallet"></i>
+        <span>FinTrackr</span>
+      </div>
+      <div class="user-menu">
+        <i class="fas fa-user-circle"></i>
+        <span id="username">User</span>
+        <a href="#" id="logout-link" style="margin-left: 12px; color: var(--primary-color);"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </header>
 
-  <h1>Enter Transaction</h1>
+    <div class="dashboard-grid">
+      <!-- Balance Card -->
+      <div class="card balance-card">
+        <div class="card-header">
+          <h2>Current Balance</h2>
+          <div class="card-icon">
+            <i class="fas fa-wallet"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="total-balance" class="balance-amount">₹0</div>
+          <div class="balance-change">
+            <i class="fas fa-arrow-up" style="color: var(--income);"></i>
+            <span>Updated just now</span>
+          </div>
+        </div>
+      </div>
 
-  <label for="amount">Amount:</label>
-  <input type="number" id="amount" required />
+      <!-- New Transaction Card -->
+      <div class="card transaction-card">
+        <div class="card-header">
+          <h2>New Transaction</h2>
+          <div class="card-icon">
+            <i class="fas fa-plus"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="transaction-form">
+            <div class="form-group">
+              <label for="amount">Amount</label>
+              <div class="input-wrapper">
+                <i class="fas fa-rupee-sign"></i>
+                <input type="number" id="amount" required />
+              </div>
+            </div>
 
-  <label for="transaction-type">Transaction Type:</label>
-  <select id="transaction-type" required>
-    <option value="">Select a type</option>
-    <option value="Income">Income</option>
-    <option value="Spending">Spending</option>
-  </select>
+            <div class="form-row">
+              <div class="form-group half">
+                <label for="transaction-type">Transaction Type</label>
+                <div class="select-wrapper">
+                  <i class="fas fa-chevron-down"></i>
+                  <select id="transaction-type" required>
+                    <option value="">Select a type</option>
+                    <option value="Income">Income</option>
+                    <option value="Spending">Spending</option>
+                  </select>
+                </div>
+              </div>
 
-  <label for="category">Category:</label>
-  <select id="category" required>
-    <option value="">Select a category</option>
-    <option value="Food">Food</option>
-    <option value="Transport">Transport</option>
-    <option value="Entertainment">Entertainment</option>
-    <option value="Utilities">Utilities</option>
-    <option value="Salary">Salary</option>
-    <option value="Other">Other</option>
-  </select>
+              <div class="form-group half">
+                <label for="category">Category</label>
+                <div class="select-wrapper">
+                  <i class="fas fa-chevron-down"></i>
+                  <select id="category" required>
+                    <option value="">Select a category</option>
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-  <label for="comment">Comment:</label>
-  <textarea id="comment" required></textarea>
+            <div class="form-group">
+              <label for="comment">Comment</label>
+              <textarea id="comment" required></textarea>
+            </div>
 
-  <label for="date">Date:</label>
-  <input type="date" id="date" required />
+            <div class="form-group">
+              <label for="date">Date</label>
+              <div class="input-wrapper">
+                <i class="fas fa-calendar"></i>
+                <input type="date" id="date" required />
+              </div>
+            </div>
 
-  <button onclick="submitTransaction()">Submit Transaction</button>
+            <button type="button" class="btn btn-primary" onclick="submitTransaction()">
+              <i class="fas fa-save"></i> Add Transaction
+            </button>
+          </form>
+          <div id="message" class="message"></div>
+        </div>
+      </div>
 
-  <div id="message" class="message"></div>
+      <!-- Category Chart Card -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <h2>Category Overview</h2>
+          <div class="card-icon">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="chart-container">
+            <canvas id="balanceChart"></canvas>
+          </div>
+        </div>
+      </div>
 
-  <h2>Transaction History</h2>
-  <div id="total-balance">Total Balance: ₹0</div>
-  <table id="transactions-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Type</th>
-        <th>Comment</th>
-        <th>Amount (₹)</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="transactions-body">
-      <!-- Transactions will be populated here -->
-    </tbody>
-  </table>
+      <!-- Transaction History Card -->
+      <div class="card history-card">
+        <div class="card-header">
+          <h2>Transaction History</h2>
+          <div class="card-icon">
+            <i class="fas fa-history"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table id="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Comment</th>
+                  <th>Amount (₹)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-body">
+                <!-- Transactions will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <div id="chart-container">
-    <canvas id="balanceChart"></canvas>
+  <!-- Notification -->
+  <div id="notification" class="notification">
+    <div class="notification-content">
+      <i class="notification-icon"></i>
+      <span class="notification-message"></span>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -92,10 +635,31 @@
     const API_URL = 'http://localhost:5501'; // Change as needed
     const token = localStorage.getItem('authToken');
 
+    // Check for authentication
     if (!token) {
-      alert('Please log in first.');
-      window.location.href = 'index.html';
+      showNotification('Please log in first.', 'error');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 2000);
     }
+
+    // Display username if available
+    const username = localStorage.getItem('username') || 'User';
+    document.getElementById('username').textContent = username;
+
+    // Handle logout
+    document.getElementById('logout-link').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('username');
+      showNotification('Logged out successfully', 'success');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1500);
+    });
+
+    // Set today's date as default
+    document.getElementById('date').valueAsDate = new Date();
 
     async function submitTransaction() {
       const amount = parseFloat(document.getElementById('amount').value);
@@ -105,11 +669,10 @@
       const date = document.getElementById('date').value;
 
       if (!amount || amount <= 0 || !transactionType || !category || !comment || !date) {
+        showNotification('Please fill in all fields with valid values', 'error');
         document.getElementById('message').textContent = 'Please fill in all fields with valid values.';
         return;
       }
-
-      console.log('Submitting transaction:', { amount, transactionType, category, comment, date });
 
       try {
         const response = await fetch(`${API_URL}/api/transaction`, {
@@ -122,18 +685,20 @@
         });
 
         const data = await response.json();
-        console.log('Response from server:', data);
 
         if (response.ok) {
-          document.getElementById('message').textContent = 'Transaction added successfully.';
+          showNotification('Transaction added successfully', 'success');
+          document.getElementById('message').textContent = '';
           clearForm();
           fetchTransactions(); // Refresh data from server
         } else {
+          showNotification(data.message || 'Error adding transaction', 'error');
           document.getElementById('message').textContent = data.message || 'Error adding transaction.';
         }
       } catch (err) {
-        document.getElementById('message').textContent = 'Server error.';
         console.error(err);
+        showNotification('Server error', 'error');
+        document.getElementById('message').textContent = 'Server error.';
       }
     }
 
@@ -142,7 +707,7 @@
       document.getElementById('transaction-type').value = '';
       document.getElementById('category').value = '';
       document.getElementById('comment').value = '';
-      document.getElementById('date').value = '';
+      document.getElementById('date').valueAsDate = new Date(); // Reset to today
     }
 
     async function deleteTransaction(id) {
@@ -157,14 +722,14 @@
         const data = await response.json();
 
         if (response.ok) {
-          document.getElementById('message').textContent = 'Transaction deleted.';
+          showNotification('Transaction deleted successfully', 'success');
           fetchTransactions();
         } else {
-          document.getElementById('message').textContent = data.message || 'Error deleting transaction.';
+          showNotification(data.message || 'Error deleting transaction', 'error');
         }
       } catch (err) {
         console.error(err);
-        document.getElementById('message').textContent = 'Server error.';
+        showNotification('Server error', 'error');
       }
     }
 
@@ -175,51 +740,60 @@
         });
 
         const data = await response.json();
-        console.log('Fetched data from server:', data);
 
         if (response.ok) {
           const tbody = document.getElementById('transactions-body');
           tbody.innerHTML = '';
-          
+
           // Get balance and category totals from server response
           const totalBalance = data.totalBalance || 0;
           const categoryTotals = data.categoryTotals || {};
 
-          if (data.transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">No transactions yet.</td></tr>';
+          if (!data.transactions || data.transactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No transactions yet.</td></tr>';
+          } else {
+            // Sort by date descending
+            data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            data.transactions.forEach(txn => {
+              const amount = parseFloat(txn.amount); // Ensure it's a number
+              const row = document.createElement('tr');
+
+              // Highlight income/spending with colors
+              const amountClass = txn.transactionType === 'Income' ? 'income' : 'spending';
+              const amountPrefix = txn.transactionType === 'Income' ? '+' : '-';
+
+              // Icon based on category
+              let categoryIcon = 'fa-tag';
+              switch(txn.category) {
+                case 'Food': categoryIcon = 'fa-utensils'; break;
+                case 'Transport': categoryIcon = 'fa-car'; break;
+                case 'Entertainment': categoryIcon = 'fa-film'; break;
+                case 'Utilities': categoryIcon = 'fa-bolt'; break;
+                case 'Salary': categoryIcon = 'fa-money-bill-wave'; break;
+              }
+
+              row.innerHTML = `
+                <td><i class="fas fa-calendar-day" style="color: var(--medium-gray); margin-right: 5px;"></i> ${new Date(txn.date).toLocaleDateString()}</td>
+                <td><i class="fas ${categoryIcon}" style="color: var(--primary-color); margin-right: 5px;"></i> ${txn.category}</td>
+                <td>${txn.transactionType}</td>
+                <td>${txn.comment}</td>
+                <td class="${amountClass}">${amountPrefix}₹${amount.toFixed(2)}</td>
+                <td><button class="delete-btn" onclick="deleteTransaction('${txn._id}')"><i class="fas fa-trash"></i> Delete</button></td>
+              `;
+              tbody.appendChild(row);
+            });
           }
 
-          // Sort by date descending
-          data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-          data.transactions.forEach(txn => {
-            const amount = parseFloat(txn.amount); // Ensure it's a number
-            const row = document.createElement('tr');
-            
-            // Highlight income/spending with colors
-            const amountClass = txn.transactionType === 'Income' ? 'income' : 'spending';
-            const amountPrefix = txn.transactionType === 'Income' ? '+' : '-';
-            
-            row.innerHTML = `
-              <td>${new Date(txn.date).toLocaleDateString()}</td>
-              <td>${txn.category}</td>
-              <td>${txn.transactionType}</td>
-              <td>${txn.comment}</td>
-              <td class="${amountClass}">${amountPrefix}₹${amount.toFixed(2)}</td>
-              <td><button class="delete-btn" onclick="deleteTransaction('${txn._id}')">Delete</button></td>
-            `;
-            tbody.appendChild(row);
-          });
-
           // Display the total balance from the server
-          document.getElementById('total-balance').textContent = `Total Balance: ₹${parseFloat(totalBalance).toFixed(2)}`;
+          document.getElementById('total-balance').textContent = `₹${parseFloat(totalBalance).toFixed(2)}`;
           updateChart(categoryTotals);
         } else {
-          document.getElementById('message').textContent = data.message || 'Error fetching transactions.';
+          showNotification(data.message || 'Error fetching transactions', 'error');
         }
       } catch (err) {
         console.error(err);
-        document.getElementById('message').textContent = 'Server error.';
+        showNotification('Server error', 'error');
       }
     }
 
@@ -231,19 +805,15 @@
 
       // Make sure we have data to display
       if (!categoryTotals || Object.keys(categoryTotals).length === 0) {
-        console.log('No category data available for chart');
         return;
       }
 
       const labels = Object.keys(categoryTotals);
       const data = Object.values(categoryTotals);
-      
-      // Create color arrays based on values (positive green, negative red)
-      const backgroundColors = data.map(value => value >= 0 ? '#4CAF50' : '#f44336');
-      const borderColors = data.map(value => value >= 0 ? '#388E3C' : '#d32f2f');
 
-      console.log('Chart labels:', labels);
-      console.log('Chart data:', data);
+      // Create color arrays based on values (positive green, negative red)
+      const backgroundColors = data.map(value => value >= 0 ? 'rgba(30, 205, 151, 0.7)' : 'rgba(245, 82, 82, 0.7)');
+      const borderColors = data.map(value => value >= 0 ? '#1ecd97' : '#f55252');
 
       balanceChart = new Chart(ctx, {
         type: 'bar',
@@ -254,14 +824,24 @@
             data: data,
             backgroundColor: backgroundColors,
             borderColor: borderColors,
-            borderWidth: 1
+            borderWidth: 2,
+            borderRadius: 4
           }]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
-              beginAtZero: true
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
             }
           },
           animation: {
@@ -272,6 +852,11 @@
               display: false
             },
             tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              padding: 10,
+              bodyFont: {
+                size: 14
+              },
               callbacks: {
                 label: function(context) {
                   let label = context.dataset.label || '';
@@ -288,7 +873,30 @@
       });
     }
 
-    // On load
+    // Notification function
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      const notificationMessage = notification.querySelector('.notification-message');
+      const notificationIcon = notification.querySelector('.notification-icon');
+
+      notificationMessage.textContent = message;
+
+      // Set the appropriate icon based on notification type
+      if (type === 'success') {
+        notificationIcon.className = 'notification-icon fas fa-check-circle';
+        notification.className = 'notification notification-success show';
+      } else {
+        notificationIcon.className = 'notification-icon fas fa-exclamation-circle';
+        notification.className = 'notification notification-error show';
+      }
+
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize
     window.onload = fetchTransactions;
   </script>
 </body>
